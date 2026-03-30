@@ -39,6 +39,7 @@ class SupportCopilot:
         )
 
         self._memory_error: str | None = None
+        self.memory: CustomerMemoryStore | None = None
 
         try:
             self.memory = CustomerMemoryStore(settings=settings, llm=self._llm)
@@ -120,6 +121,8 @@ class SupportCopilot:
         draft_content: str,
         context_used: dict[str, Any] | None = None,
     ) -> None:
+        if self.memory is None:
+            return
         entity_links = self._extract_entity_links(
             ticket_subject=ticket_subject,
             ticket_description=ticket_description,
@@ -144,6 +147,8 @@ class SupportCopilot:
         customer_company: str | None = None,
         limit: int = 20,
     ) -> list[dict[str, Any]]:
+        if self.memory is None:
+            return []
         scope_user_ids = self._memory_scope_ids(
             customer_email=customer_email,
             customer_company=customer_company,
@@ -176,6 +181,8 @@ class SupportCopilot:
         customer_company: str | None,
         limit: int,
     ) -> list[dict[str, Any]]:
+        if self.memory is None:
+            return []
         per_scope_limit = max(1, limit)
         scope_user_ids = self._memory_scope_ids(
             customer_email=customer_email,
