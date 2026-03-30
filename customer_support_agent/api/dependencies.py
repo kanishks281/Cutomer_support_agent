@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from functools import lru_cache
-
 from fastapi import Depends, HTTPException
 
 from customer_support_agent.core.settings import Settings, get_settings
@@ -13,7 +11,6 @@ from customer_support_agent.services.draft_service import DraftService
 from customer_support_agent.services.knowledge_service import KnowledgeService
 
 
-@lru_cache
 def get_copilot() -> SupportCopilot:
     return SupportCopilot(settings=get_settings())
 

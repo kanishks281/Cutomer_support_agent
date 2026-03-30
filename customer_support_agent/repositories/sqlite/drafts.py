@@ -52,6 +52,7 @@ class DraftsRepository:
         draft_id: int,
         content: str | None = None,
         status: str | None = None,
+        context_used: str | None = None,
     ) -> dict[str, Any] | None:
         updates: list[str] = []
         values: list[Any] = []
@@ -62,6 +63,9 @@ class DraftsRepository:
         if status is not None:
             updates.append("status = ?")
             values.append(status)
+        if context_used is not None:
+            updates.append("context_used = ?")
+            values.append(context_used)
 
         if not updates:
             return self.get_by_id(draft_id)

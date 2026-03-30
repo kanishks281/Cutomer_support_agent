@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from customer_support_agent.api.dependencies import (
@@ -48,6 +50,7 @@ def update_draft_route(
         relation = drafts_repo.get_ticket_and_customer_by_draft(draft_id)
         if relation:
             tickets_repo.set_status(relation["ticket_id"], "resolved")
+            memory_save_error: str | None = None
             try:
                 context_used = draft_service.parse_context_used(updated.get("context_used"))
                 get_copilot().save_accepted_resolution(
@@ -58,8 +61,22 @@ def update_draft_route(
                     draft_content=updated["content"],
                     context_used=context_used,
                 )
-            except Exception:
+            except Exception as exc:
                 # Draft acceptance should still succeed even if memory save fails.
-                pass
+                memory_save_error = str(exc)
+
+            if memory_save_error:
+                context_used = draft_service.parse_context_used(updated.get("context_used"))
+                errors = context_used.setdefault("errors", [])
+                if isinstance(errors, list):
+                    errors.append(f"Memory save failed on accept: {memory_save_error}")
+                else:
+                    context_used["errors"] = [f"Memory save failed on accept: {memory_save_error}"]
+                persisted = drafts_repo.update(
+                    draft_id=draft_id,
+                    context_used=json.dumps(context_used),
+                )
+                if persisted:
+                    updated = persisted
 
     return draft_service.serialize_draft(updated)
