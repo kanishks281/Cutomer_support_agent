@@ -317,8 +317,8 @@ else:
                 except Exception as exc:
                     st.error(f"Failed to discard draft: {exc}")
 
-        with st.expander("Context used"):
-            render_context(draft_data.get("context_used"))
+        st.markdown("**Context used**")
+        render_context(draft_data.get("context_used"))
 
     st.markdown("**Memory Probe**")
     probe_query = st.text_input(
